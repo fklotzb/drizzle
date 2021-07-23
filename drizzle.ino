@@ -25,24 +25,16 @@ void setup() {
   pinMode(LED_G, OUTPUT);
   pinMode(LED_S, OUTPUT);
   
+  digitalWrite(LED_R, HIGH);
   digitalWrite(LED_G, HIGH);
 
   // open serial port
   Serial.begin(9600);
+
   // start loops
-  Scheduler.startLoop(serial);
   Scheduler.startLoop(measure);
   Scheduler.startLoop(valve);
-}
-
-void serial() {
-  // check if serial active, then blink
-  if (Serial) {
-    digitalWrite(LED_S, HIGH);
-    delay(100);
-    digitalWrite(LED_S, LOW);
-  }
-  delay(100);
+  Scheduler.startLoop(led_serial);
 }
 
 void loop() {
@@ -50,29 +42,40 @@ void loop() {
   if (millis() - valve_last > valve_delay * 1000) {
     // update last check
     valve_last = millis();
-    // reset data
-    ehum = 0;
-    // collect data
-    for (byte i=0; i<100; i++) {
-      ehum = ehum + analogRead(EHUM_SENSOR);
-    }
-    // build avg
-    ehum = ehum / 100;
-    // build percentage
-    ehum = ehum * 100 / 1023;
-    // print data
-    Serial.print("EHUM ");
-    Serial.print(ehum);
-    Serial.println("%");
-    // check if to dry, then indicate with red led
+    // check if too dry
     if (ehum < ehum_min) {
-      digitalWrite(LED_R, LOW);
+      valve_open = true;
     }
-    else {
-      digitalWrite(LED_R, HIGH);
-    }
-    delay(ehum_delay*1000);
   }
+  // check if valve delay is close to elapse (<=1s), delay if not
+  else if (valve_delay * 1000 - millis() - valve_last > 1000) {
+    delay(500);
+  }
+}
+
+void measure() {
+  // reset data
+  ehum = 0;
+  // collect data
+  for (byte i=0; i<100; i++) {
+    ehum = ehum + analogRead(EHUM_SENSOR);
+  }
+  // build avg
+  ehum = ehum / 100;
+  // build percentage
+  ehum = map(ehum, 0, 1023, 0, 100);
+  // print data
+  Serial.print("EHUM ");
+  Serial.print(ehum);
+  Serial.println("%");
+  // check if to dry, then indicate with red led
+  if (ehum < ehum_min) {
+    digitalWrite(LED_R, LOW);
+  }
+  else {
+    digitalWrite(LED_R, HIGH);
+  }
+  delay(ehum_delay*1000);
 }
 
 void valve() {
@@ -86,6 +89,14 @@ void valve() {
     digitalWrite(LED_G, HIGH);
     valve_open = false;
   }
-  // wait 1min until next status check for safety
-  delay(60000);
+}
+
+void led_serial() {
+  // indicate serial connection
+  if (Serial) {
+    digitalWrite(LED_S, HIGH);
+    delay(50);
+    digitalWrite(LED_S, LOW);
+  }
+  delay(250);
 }
