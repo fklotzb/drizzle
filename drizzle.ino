@@ -14,7 +14,7 @@ bool valve_open = false;  // status of valve
 int valve_open_time = 5;  // time valve stays open after activation [s]
 int valve_delay = 3600;   // time valve stays closed after activation [s]
 
-unsigned long valve_last = 0; // timestamp of last check [ms]
+unsigned long valve_last; // timestamp of last check [ms]
 
 
 void setup() {
@@ -27,6 +27,8 @@ void setup() {
   
   digitalWrite(LED_R, HIGH);
   digitalWrite(LED_G, HIGH);
+
+  valve_last = valve_delay * -1000;
 
   // open serial port
   Serial.begin(9600);
