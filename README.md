@@ -1,5 +1,5 @@
 # drizzle
-watering automation
+### watering automation
 
 This project allows you to build an automated watering system for your plants so they do not just die.
 
@@ -14,19 +14,19 @@ This process gets repeated every hour.
 Serial monitor displays the currently measured earth humidity.
 
 LEDs indicate as followed:
-    orange flashing:    serial connection active
-    red static:         eath humidity below limit
-    green static:       valve open
+1. orange flashing:    serial connection active
+2. red static:         eath humidity below limit
+3. green static:       valve open
 
 Hardware:
-    Arduino Nano 33 BLE
-    Joy-it SEN-Moisture
-    RMV-158-NC valve
-    STMicroelectronics STP16NF06L MOSFET
-    10kOhm resistor
-    power supply with output 12V, 0.6A
+- Arduino Nano 33 BLE
+- Joy-it SEN-Moisture
+- RMV-158-NC valve
+- STMicroelectronics STP16NF06L MOSFET
+- 10kOhm resistor
+- power supply with output 12V, 0.6A
 
 (you may use some other stuff if it works as well)
 
 
-I do not take responsibility if you flood your home or anything else.
+*I do not take responsibility if you flood your home or anything else.*
