@@ -18,7 +18,10 @@ LEDs indicate as followed:
 2. red static:         eath humidity below limit
 3. green static:       valve open
 
-Hardware:
+Night mode:
+Red, green and power led flash once everey measuring inervall intead of static glowing.
+
+Used hardware:
 - Arduino Nano 33 BLE
 - Joy-it SEN-Moisture
 - RMV-158-NC valve

@@ -11,14 +11,14 @@
 int ehum;                 // earth humidity [%]
 int ehum_min = 50;        // minimum earth humidity [%]
 int ehum_delay = 10;      // interval for measuring ehum [s]
-bool ehum_dry = true;    // humidity status
+bool ehum_dry = true;     // humidity status
 
 bool valve_open = false;  // status of valve
 int valve_open_time = 15; // time valve stays open after activation [s]
 int valve_delay = 3600;   // time valve stays closed after activation [s]
 
 int abright;              // ambient brightness level
-int abright_min = 5;     // brightness for switching to nightmode
+int abright_min = 5;      // brightness for switching to nightmode
 bool nightmode = false;   // nightmode activated
 
 unsigned long valve_last; // timestamp of last check [ms]
