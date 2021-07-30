@@ -1,18 +1,25 @@
 #include <Scheduler.h>
+#include <Arduino_APDS9960.h>
 
 #define EHUM_SENSOR A0
 #define VALVE A2
 #define LED_R 22
 #define LED_G 23
 #define LED_S 13
+#define LED_P 25
 
 int ehum;                 // earth humidity [%]
 int ehum_min = 50;        // minimum earth humidity [%]
 int ehum_delay = 10;      // interval for measuring ehum [s]
+bool ehum_dry = true;    // humidity status
 
 bool valve_open = false;  // status of valve
 int valve_open_time = 15; // time valve stays open after activation [s]
 int valve_delay = 3600;   // time valve stays closed after activation [s]
+
+int abright;              // ambient brightness level
+int abright_min = 5;     // brightness for switching to nightmode
+bool nightmode = false;   // nightmode activated
 
 unsigned long valve_last; // timestamp of last check [ms]
 
@@ -24,6 +31,7 @@ void setup() {
   pinMode(LED_R, OUTPUT);
   pinMode(LED_G, OUTPUT);
   pinMode(LED_S, OUTPUT);
+  pinMode(LED_P, OUTPUT);
   
   digitalWrite(LED_R, HIGH);
   digitalWrite(LED_G, HIGH);
@@ -32,6 +40,9 @@ void setup() {
 
   // open serial port
   Serial.begin(9600);
+
+  // initialize brightness sensor
+  APDS.begin();
 
   // start loops
   Scheduler.startLoop(measure);
@@ -45,7 +56,7 @@ void loop() {
     // update last check
     valve_last = millis();
     // check if too dry
-    if (ehum < ehum_min) {
+    if (ehum_dry) {
       valve_open = true;
     }
   }
@@ -60,23 +71,47 @@ void measure() {
   ehum = 0;
   // collect data
   for (byte i=0; i<100; i++) {
+    // earth humidity
     ehum = ehum + analogRead(EHUM_SENSOR);
+    // ambient brightness
+    int r, g, b, a;
+    while (! APDS.colorAvailable()) {
+      delay(5);
+    }
+    APDS.readColor(r, g, b, a);
+    abright = abright + a;
   }
   // build avg
   ehum = ehum / 100;
+  abright = abright / 100;
   // build percentage
   ehum = map(ehum, 0, 1023, 0, 100);
+  abright = map(abright, 0, 1023, 0, 100);
   // print data
   Serial.print("EHUM ");
   Serial.print(ehum);
+  Serial.print("%");
+  Serial.print("  ABRIGHT= ");
+  Serial.print(abright);
   Serial.println("%");
-  // check if to dry, then indicate with red led
+  // check if to dry, then set dry status
   if (ehum < ehum_min) {
-    digitalWrite(LED_R, LOW);
+    ehum_dry = true;
   }
   else {
-    digitalWrite(LED_R, HIGH);
+    ehum_dry = false;
   }
+  // check if dark, then activate nightmode
+  if (abright < abright_min) {
+    nightmode = true;
+  }
+  else {
+    nightmode = false;
+  }
+  // update leds
+  led_power();
+  led_status();
+
   delay(ehum_delay*1000);
 }
 
@@ -90,6 +125,27 @@ void valve() {
     digitalWrite(VALVE, LOW);
     digitalWrite(LED_G, HIGH);
     valve_open = false;
+  }
+}
+
+void led_status() {
+  if (ehum_dry) {
+    digitalWrite(LED_R, LOW);
+    if (nightmode) {
+      delay(50);
+      digitalWrite(LED_R, HIGH);
+    }
+  }
+  else {
+    digitalWrite(LED_R, HIGH);
+  }
+}
+
+void led_power() {
+  digitalWrite(LED_P, HIGH);
+  if (nightmode) {
+    delay(50);
+    digitalWrite(LED_P, LOW);
   }
 }
 
